@@ -8,7 +8,7 @@
 ### 0. If you don't have GMP library on your computer, you can download it from official website: https://gmplib.org
 ### 1. In Terminal (or PowerShell/GitBash etc.) go to the folder with source code
 ### 2. Run command-wise next five commands to build and run executable file:
-```console
+```bash
 mkdir build
 cd build
 cmake ..
