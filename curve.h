@@ -8,18 +8,19 @@
 #include <gmpxx.h>
 #include <string>
 
-// Набор параметров id-tc26-gost-3410-2012-256-ParamSetA:
-#define p_str               "115792089237316195423570985008687907853269984665640564039457584007913129639319"
+// id-tc26-gost-3410-2012-256-ParamSetA:
+#define p_str "115792089237316195423570985008687907853269984665640564039457584007913129639319"
 
-#define a_str               "87789765485885808793369751294406841171614589925193456909855962166505018127157"
-#define x_base_str          "65987350182584560790308640619586834712105545126269759365406768962453298326056"
-#define y_base_str          "22855189202984962870421402504110399293152235382908105741749987405721320435292"
-#define q_str               "28948022309329048855892746252171976963338560298092253442512153408785530358887"
+#define a_str "87789765485885808793369751294406841171614589925193456909855962166505018127157"
+#define x_base_str "65987350182584560790308640619586834712105545126269759365406768962453298326056"
+#define y_base_str "22855189202984962870421402504110399293152235382908105741749987405721320435292"
+#define q_str "28948022309329048855892746252171976963338560298092253442512153408785530358887"
 
-// Значение, вычисленное на основе вышеперечисленных параметров с помощью Wolfram Mathematica
-#define theta_str           "454069018412434321972378083527459607666454479745512801572100703902391945898"
+#define theta_str "454069018412434321972378083527459607666454479745512801572100703902391945898"
 
-// структура для хранения параметров в виде больших чисел
+/**
+ * Структура хранения параметров стандарта
+ */
 struct Param {
     Param();
 
@@ -31,7 +32,9 @@ struct Param {
     mpz_class theta;
 };
 
-// структура для хранения параметров квадрики и порождающих элементов.
+/**
+ * Структура хранения параметров эллиптической кривой в форме квадратики Якоби
+ */
 struct JacobiCurve {
     JacobiCurve(const Param &param);
 
@@ -43,43 +46,86 @@ struct JacobiCurve {
     mpz_class p = 0;
 };
 
-// структура для хранения точек
-struct Point {
-    Point(const std::string &x, const std::string &y, const std::string &z);
+/**
+ * Структура для хранения параметров (координат) точки
+ */
+struct JacobiPoint {
+    JacobiPoint(const std::string &x, const std::string &y, const std::string &z);
 
-    Point(int x, int y, int z);
+    JacobiPoint(int x, int y, int z);
 
-    Point(mpz_class x, mpz_class y, mpz_class z);
+    JacobiPoint(mpz_class x, mpz_class y, mpz_class z);
 
-    Point() = default;
+    JacobiPoint() = default;
 
     mpz_class X;
     mpz_class Y;
     mpz_class Z;
 };
 
-// реализация сложения двух точек
-void AddPoints(const Point &P1, const Point &P2, Point &P3, const JacobiCurve &curve);
+/**
+ * Складывает две точки P1 и P2. Результат заносится в переменную (точку) P_res
+ * @param P1: ссылка на точку №1 для сложения
+ * @param P2: ссылка на точку №2 для сложения
+ * @param P_res: ссылка на точку, в которую будет записан результат
+ * @param curve: структура кривой типа JacobiCurve, в которой хранятся параметры текущей кривой
+ */
+void AddPoints(const JacobiPoint &P1, const JacobiPoint &P2, JacobiPoint &P_res, const JacobiCurve &curve);
 
-// вычисление кратной точки с помощью алгоритма "лесенка Монтгомери"
-void CalculateDegree(Point &kP, const Point &P, const JacobiCurve &curve, const mpz_class &degree);
+/**
+ * Возведение точки Р в степень degree. Используется алгоритм <<Лесенка Монтгомери>>
+ * @param kP: ссылка на точку, в которую будет записан результат
+ * @param P: ссылка на точку, которая будет возводиться в степень
+ * @param curve: структура, хранящая текущие параметры кривой
+ * @param degree: значение степени
+ */
+void kPowPoint(JacobiPoint &kP, const JacobiPoint &P, const JacobiCurve &curve, const mpz_class &degree);
 
-// перевод в аффинные координаты
-void CastPointToAffine(Point &affpoint, const Point &P, const JacobiCurve &curve);
+/**
+ * Переводит точку из проективных координат в аффинные
+ * @param affine_repr: ссылка на точку, в которую будет записан результат в аффинных координатах
+ * @param P: ссылка на точку в проективных координатах
+ * @param curve: структура, хранящая текущие параметры кривой
+ */
+void AffineCast(JacobiPoint &affine_repr, const JacobiPoint &P, const JacobiCurve &curve);
 
-// вывод в аффинных координатах
-void PrintInAffin(const Point &point, const JacobiCurve &curve);
+/**
+ * Выводит на экран координаты точки в аффинном представлении
+ * @param point: ссылка на точку
+ * @param curve: структура, хранящая текущие параметры кривой
+ */
+void AffineRepr(const JacobiPoint &point, const JacobiCurve &curve);
 
-// вывод в проективных
-void PrintProjective(const Point &point);
+/**
+ * Выводит на экран координаты точки в проективном представлении
+ * @param P: ссылка на точку
+ */
+void ProjectiveRepr(const JacobiPoint &P);
 
-// проверка, что точка лежит на кривой
-int CheckPointIsOnCurve(const Point &P, const JacobiCurve &curve);
+/**
+ * Проверяет, лежит ли точка на кривой.
+ * Возвращает 1, если точка лежит на кривой, 0 -- в противном случае
+ * @param P: ссылка на точку
+ * @param curve: структура, хранящая текущие параметры кривой
+ * @return int
+ */
+int CheckPoint(const JacobiPoint &P, const JacobiCurve &curve);
 
-// проверка, что точки равны
-int IsEqual(const Point &P1, const Point &P2, const JacobiCurve &curve);
+/**
+ * Проверяет равны ли точки друг другу.
+ * Возвращает 1, если равны; 0 -- в противном случае
+ * @param P1 : ссылка на точку №1
+ * @param P2 : ссылка на точку №2
+ * @param curve : структура, хранящая текущие параметры кривой
+ * @return int
+ */
+int CheckEqualPoints(const JacobiPoint &P1, const JacobiPoint &P2, const JacobiCurve &curve);
 
-//получение обратной точки
-void GetNegativePoint(Point &res, const Point &point);
+/**
+ * Записывает в res -point
+ * @param res : ссылка на точку, в которую будет записан результат
+ * @param point : ссыка на точку, которую необходимо преставить в отрицательном виде
+ */
+void GetNegativePoint(JacobiPoint &res, const JacobiPoint &point);
 
 #endif // CURVE_H
